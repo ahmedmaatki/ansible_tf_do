@@ -1,0 +1,37 @@
+- name: Create SQ service under /etc/systemd/system
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+    - name: Create SonarQube service file 
+      copy:
+        dest: /etc/systemd/system/sonar.service
+        content: |
+          [Unit]
+          Description=SonarQube service
+          After=syslog.target network.target
+          
+          [Service]
+          Type=forking
+
+          ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start
+          ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop
+          
+          User=root
+          Group=root
+          Restart=always
+          
+          [Install]
+          WantedBy=multi-user.target
+          
+    - name: Reload the system daemon so the file takes effect
+      shell: sudo systemctl daemon-reload
+      
+    - name: ff
+      shell: sudo ufw allow 5432/tcp
+          
+    - name: Start and enable SonarQube at boot
+      shell: |
+        sudo systemctl start sonar
+        sudo systemctl enable sonar
+

@@ -1,0 +1,43 @@
+---
+- name: Setting up PostgreSQL
+  hosts: all
+  become: yes
+  tasks:
+  
+    - name: Add PostgreSQL repository GPG key
+      shell: curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg >/dev/null
+    
+    - name: Add PostgreSQL repository to sources.list
+      shell: echo "deb [arch=amd64] http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main" | sudo tee /etc/apt/sources.list.d/postgresql.list
+    
+    - name: Update the system
+      shell: sudo apt update
+      
+    - name: Install PostgreSQL 
+      apt:
+        name: postgresql-13
+        update_cache: yes
+    
+    - name: Start and enable PostgreSQL
+      shell: |
+        sudo systemctl enable postgresql
+        sudo systemctl start postgresql
+    
+    - name: Set password for the postgres user
+      expect:
+        command: sudo passwd postgres
+        responses:
+          'New password:': 'rogue\n'
+          'Retype new password:': 'rogue\n'
+        
+    - name: Create user to access SQ DB
+      become_user: postgres
+      command: createuser sonaruser
+   
+    - name: Change sonaruser password
+      become_user: postgres
+      command: psql -c "ALTER USER sonaruser WITH ENCRYPTED password 'rogue';"
+    
+    - name: Create DB
+      become_user: postgres
+      command: psql -c "CREATE DATABASE sonardb OWNER sonaruser;"

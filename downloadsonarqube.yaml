@@ -1,0 +1,28 @@
+---
+- name: Install and configure SonarQube
+  hosts: all
+  become: yes    
+  tasks:
+  
+  - name: Download a specific version of SonarQube
+    get_url:
+      url: https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-7.3.zip
+      dest: /tmp
+   
+  - name: Unzip SonarQube to a desired location
+    unarchive:
+      src: /tmp/sonarqube-7.3.zip
+      dest: /opt/
+      remote_src: yes
+      
+  - name: Rename the directory
+    shell: mv /opt/sonarqube-7.3 /opt/sonarqube
+    
+  - name: Configure SonarQube 
+    blockinfile:
+      path: /opt/sonarqube/conf/sonar.properties
+      block: |
+        sonar.jdbc.username=sonaruser
+        sonar.jdbc.password=rogue
+        sonar.jdbc.url=jdbc:postgresql://localhost/sonardb
+        sonardbsonar.web.javaAdditionalOpts=-server

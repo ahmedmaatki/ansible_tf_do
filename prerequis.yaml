@@ -1,0 +1,48 @@
+---
+- name: Setting up prerequisites
+  hosts: all
+  become: yes
+  tasks:
+  
+    - name: Update and upgrade packages
+      become: true
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    - name: Install Java and Unzip
+      package:
+        name:
+          - unzip
+          - openjdk-11-jdk
+        state: present
+        
+    - name: Install required packages
+      apt:
+        name: curl, gnupg, software-properties-common, apt-transport-https, lsb-release
+        state: present
+        
+    - name: Update JAVA_HOME in shell configuration file
+      lineinfile:
+        path: /root/.bashrc
+        line: "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/bin/java"
+        state: present
+
+    - name: Set JAVA_HOME for the current session
+      shell: "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/bin/java"
+      
+    - name: Allow SonarQube firewall port
+      shell: sudo ufw allow 9000/tcp
+      
+    - name: Set vm.max_map_count kernel parameter
+      shell: |
+        sudo sysctl -w vm.max_map_count=524288
+        sudo sysctl -w fs.file-max=131072
+        ulimit -n 131072
+        
+    - name: create sonar user
+      command: adduser --system --no-create-home --group --disabled-login sonardev
+        
+    - name: Reboot the system
+      become: yes
+      reboot:
