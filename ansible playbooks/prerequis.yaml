@@ -1,6 +1,6 @@
 ---
 - name: Setting up prerequisites
-  hosts: all
+  hosts: 104.248.25.162
   become: yes
   tasks:
   
