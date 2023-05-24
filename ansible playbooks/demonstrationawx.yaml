@@ -1,0 +1,8 @@
+---
+- name: Demonstration soutenance technique
+  hosts: 104.248.25.162
+  become: yes
+  tasks:
+ 
+    - name: Creation de dossier
+      shell: mkdir salut-a-tous
